@@ -266,9 +266,9 @@ def sample_memories(batch_size):
 # In[20]:
 
 
-eps_min = 0.05
+eps_min = 0.1
 eps_max = 1.0
-eps_decay_steps = 50000
+eps_decay_steps = 2000000
 
 def epsilon_greedy(q_values, step):
     epsilon = max(eps_min, eps_max - (eps_max-eps_min) * step/eps_decay_steps)
@@ -283,15 +283,15 @@ def epsilon_greedy(q_values, step):
 # In[21]:
 
 
-n_steps = 100000 # total number of training steps
-training_start = 1000 # start training after 1,000 game iterations
-training_interval = 3 # run a training step every 3 game iterations
-save_steps = 50 # save the model every 50 training steps
-copy_steps = 25 # copy the critic to the actor every 25 training steps
-discount_rate = 0.95
-skip_start = 90 # skip the start of every game (it's just waiting time)
+n_steps = 4000000  # total number of training steps
+training_start = 10000  # start training after 10,000 game iterations
+training_interval = 4  # run a training step every 4 game iterations
+save_steps = 1000  # save the model every 1,000 training steps
+copy_steps = 10000  # copy online DQN to target DQN every 10,000 training steps
+discount_rate = 0.99
+skip_start = 90  # Skip the start of every game (it's just waiting time).
 batch_size = 50
-iteration = 0 # game iterations
+iteration = 0  # game iterations
 checkpoint_path = "./my_dqn.ckpt"
 done = True # env needs to be reset
 
