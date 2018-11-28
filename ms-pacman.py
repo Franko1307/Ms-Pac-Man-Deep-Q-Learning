@@ -9,7 +9,7 @@
 import gym
 import numpy as np
 
-get_ipython().run_line_magic('matplotlib', 'nbagg')
+# get_ipython().run_line_magic('matplotlib', 'nbagg')
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -86,17 +86,17 @@ img = preprocess_observation(obs)
 # In[11]:
 
 
-plt.figure(figsize=(11, 7))
-plt.subplot(121)
-plt.title("Observación original (160 × 210 RGB)")
-plt.imshow(obs)
-plt.axis("off")
-plt.subplot(122)
-plt.title("Observación preprocesada (88 × 80 en escala de grises)")
-plt.imshow(img.reshape(88, 80), interpolation="nearest", cmap="gray")
-plt.axis("off")
-save_fig("preprocessing_plot")
-plt.show()
+# plt.figure(figsize=(11, 7))
+# plt.subplot(121)
+# plt.title("Observación original (160 × 210 RGB)")
+# plt.imshow(obs)
+# plt.axis("off")
+# plt.subplot(122)
+# plt.title("Observación preprocesada (88 × 80 en escala de grises)")
+# plt.imshow(img.reshape(88, 80), interpolation="nearest", cmap="gray")
+# plt.axis("off")
+# save_fig("preprocessing_plot")
+# plt.show()
 
 
 # A continuación, vamos a crear el DQN. Simplemente podría tomar un par estado-acción (s, a) como entrada y generar una estimación de
@@ -176,16 +176,16 @@ online_vars
 
 
 # Retrocedamos por un segundo: ahora tenemos dos DQN que son capaces de tomar un estado de entorno (es decir, una observación preprocesada) como entrada y salida de un valor Q estimado para cada acción posible en ese estado.
-# 
-# Además, tenemos una operación llamada copy_critic_to_actor para copiar todas las variables entrenables del crítico DQN al actor DQN. Utilizamos la función tf.group () de TensorFlow para agrupar todas las operaciones de asignación en una sola operación conveniente. 
-# 
-# El actor DQN se puede usar para interpretar a la Sra. Pac-Man (inicialmente muy mal). 
-# Como se mencionó anteriormente, desea que explore el juego lo suficientemente a fondo, por lo que generalmente desea combinarlo con una política avariciosa u otra estrategia de exploración. Pero ¿qué pasa con la crítica DQN? ¿Cómo aprenderá a jugar el juego? 
-# 
+#
+# Además, tenemos una operación llamada copy_critic_to_actor para copiar todas las variables entrenables del crítico DQN al actor DQN. Utilizamos la función tf.group () de TensorFlow para agrupar todas las operaciones de asignación en una sola operación conveniente.
+#
+# El actor DQN se puede usar para interpretar a la Sra. Pac-Man (inicialmente muy mal).
+# Como se mencionó anteriormente, desea que explore el juego lo suficientemente a fondo, por lo que generalmente desea combinarlo con una política avariciosa u otra estrategia de exploración. Pero ¿qué pasa con la crítica DQN? ¿Cómo aprenderá a jugar el juego?
+#
 # La respuesta corta es que intentará que sus predicciones de Q-Value coincidan con los Q-Values estimados por el actor a través de su experiencia en el juego. Específicamente, dejaremos que el actor juegue por un tiempo, almacenando todas sus experiencias en una memoria de repetición.
-# 
-# Cada memoria será un 5-tupla (estado, acción, próximo estado, recompensa, continuar), donde el elemento "continuar" será igual a 0.0 cuando el juego termine, o 1.0 de lo contrario. Luego, a intervalos regulares, muestrearemos un lote de memorias de la memoria de repetición, y estimaremos los valores Q de estas memorias. 
-# 
+#
+# Cada memoria será un 5-tupla (estado, acción, próximo estado, recompensa, continuar), donde el elemento "continuar" será igual a 0.0 cuando el juego termine, o 1.0 de lo contrario. Luego, a intervalos regulares, muestrearemos un lote de memorias de la memoria de repetición, y estimaremos los valores Q de estas memorias.
+#
 # Finalmente, capacitaremos al crítico DQN para predecir estos valores Q usando técnicas de aprendizaje supervisado regularmente. Una vez cada pocas iteraciones de entrenamiento, copiaremos la crítica DQN al actor DQN. ¡Y listo!
 
 # In[16]:
@@ -213,9 +213,9 @@ saver = tf.train.Saver()
 
 
 # #### NOTA
-# 
+#
 # La función ReplayMemory es opcional, pero muy recomendable. Sin ella, entrenaría al crítico DQN usando experiencias consecutivas que pueden estar muy relacionadas.
-# 
+#
 # Esto introduciría una gran cantidad de sesgo y ralentizaría la convergencia del algoritmo de entrenamiento.
 # Mediante el uso de una memoria de reproducción, nos aseguramos de que las memorias suministradas al algoritmo de entrenamiento puedan estar bastante sin correlacionar.
 
@@ -228,12 +228,12 @@ class ReplayMemory:
         self.buf = np.empty(shape=maxlen, dtype=np.object)
         self.index = 0
         self.length = 0
-        
+
     def append(self, data):
         self.buf[self.index] = data
         self.length = min(self.length + 1, self.maxlen)
         self.index = (self.index + 1) % self.maxlen
-    
+
     def sample(self, batch_size, with_replacement=True):
         if with_replacement:
             indices = np.random.randint(self.length, size=batch_size) # faster
@@ -349,7 +349,7 @@ with tf.Session() as sess:
 
         if iteration < training_start or iteration % training_interval != 0:
             continue # only train after warmup period and at regular intervals
-        
+
         # Sample memories and use the target DQN to produce the target Q-Value
         X_state_val, X_action_val, rewards, X_next_state_val, continues = (
             sample_memories(batch_size))
@@ -418,11 +418,7 @@ def plot_animation(frames, repeat=False, interval=40):
 # In[28]:
 
 
-plot_animation(frames)
+# plot_animation(frames)
 
 
 # In[ ]:
-
-
-
-
