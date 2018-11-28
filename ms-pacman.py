@@ -8,7 +8,12 @@
 
 import gym
 import numpy as np
+
+get_ipython().run_line_magic('matplotlib', 'nbagg')
+import matplotlib
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+
 import os
 import tensorflow as tf
 
@@ -101,7 +106,7 @@ plt.show()
 
 # Como veremos, el algoritmo de entrenamiento que usaremos requiere dos DQN con la misma arquitectura (pero con diferentes parámetros): uno se usará para conducir a la Sra. Pac-Man durante el entrenamiento (el actor), y el otro observará al actor y Aprende de sus pruebas y errores (la crítica). A intervalos regulares copiaremos la crítica al actor. Ya que necesitamos dos DQN idénticos, crearemos una función q_network () para construirlos:
 
-# In[13]:
+# In[12]:
 
 
 input_height = 88
@@ -119,7 +124,7 @@ n_outputs = env.action_space.n # 9 acciones discretas están disponibles
 initializer = tf.contrib.layers.variance_scaling_initializer()
 
 
-# In[16]:
+# In[13]:
 
 
 def q_network(X_state, name):
@@ -149,8 +154,10 @@ def q_network(X_state, name):
 
 # Ahora vamos a crear el marcador de posición de entrada, los dos DQN y la operación para copiar el DQN crítico al DQN actor:
 
-# In[17]:
+# In[14]:
 
+
+tf.reset_default_graph()
 
 X_state = tf.placeholder(tf.float32, shape=[None, input_height, input_width,
                                             input_channels])
@@ -162,7 +169,7 @@ copy_ops = [target_var.assign(online_vars[var_name])
 copy_online_to_target = tf.group(*copy_ops)
 
 
-# In[18]:
+# In[15]:
 
 
 online_vars
@@ -181,7 +188,7 @@ online_vars
 # 
 # Finalmente, capacitaremos al crítico DQN para predecir estos valores Q usando técnicas de aprendizaje supervisado regularmente. Una vez cada pocas iteraciones de entrenamiento, copiaremos la crítica DQN al actor DQN. ¡Y listo!
 
-# In[19]:
+# In[16]:
 
 
 learning_rate = 0.001
@@ -212,7 +219,7 @@ saver = tf.train.Saver()
 # Esto introduciría una gran cantidad de sesgo y ralentizaría la convergencia del algoritmo de entrenamiento.
 # Mediante el uso de una memoria de reproducción, nos aseguramos de que las memorias suministradas al algoritmo de entrenamiento puedan estar bastante sin correlacionar.
 
-# In[20]:
+# In[17]:
 
 
 class ReplayMemory:
@@ -235,14 +242,14 @@ class ReplayMemory:
         return self.buf[indices]
 
 
-# In[21]:
+# In[18]:
 
 
 replay_memory_size = 500000
 replay_memory = ReplayMemory(replay_memory_size)
 
 
-# In[26]:
+# In[19]:
 
 
 def sample_memories(batch_size):
@@ -256,7 +263,7 @@ def sample_memories(batch_size):
 
 # Necesitaremos al actor para explorar el juego. Usaremos la política ε-greedy, y gradualmente disminuiremos ε de 1.0 a 0.05, en 50,000 pasos de entrenamiento:
 
-# In[31]:
+# In[20]:
 
 
 eps_min = 0.05
@@ -273,7 +280,7 @@ def epsilon_greedy(q_values, step):
 
 # vamos a inicializar algunas variables:
 
-# In[32]:
+# In[21]:
 
 
 n_steps = 100000 # total number of training steps
@@ -289,7 +296,7 @@ checkpoint_path = "./my_dqn.ckpt"
 done = True # env needs to be reset
 
 
-# In[33]:
+# In[22]:
 
 
 loss_val = np.infty
@@ -298,7 +305,7 @@ total_max_q = 0
 mean_max_q = 0.0
 
 
-# In[35]:
+# In[23]:
 
 
 with tf.Session() as sess:
@@ -364,10 +371,54 @@ with tf.Session() as sess:
             saver.save(sess, checkpoint_path)
 
 
-# In[ ]:
+# Puede interrumpir la celda de arriba en cualquier momento para probar a su agente usando la celda de abajo. Luego, puede ejecutar la celda anterior una vez más, cargará los últimos parámetros guardados y reanudará el entrenamiento.
+
+# In[24]:
 
 
+frames = []
+n_max_steps = 10000
 
+with tf.Session() as sess:
+    saver.restore(sess, checkpoint_path)
+
+    obs = env.reset()
+    for step in range(n_max_steps):
+        state = preprocess_observation(obs)
+
+        # Online DQN evaluates what to do
+        q_values = online_q_values.eval(feed_dict={X_state: [state]})
+        action = np.argmax(q_values)
+
+        # Online DQN plays
+        obs, reward, done, info = env.step(action)
+
+        img = env.render(mode="rgb_array")
+        frames.append(img)
+
+        if done:
+            break
+
+
+# In[27]:
+
+
+def update_scene(num, frames, patch):
+    patch.set_data(frames[num])
+    return patch,
+
+def plot_animation(frames, repeat=False, interval=40):
+    plt.close()  # or else nbagg sometimes plots in the previous cell
+    fig = plt.figure()
+    patch = plt.imshow(frames[0])
+    plt.axis('off')
+    return animation.FuncAnimation(fig, update_scene, fargs=(frames, patch), frames=len(frames), repeat=repeat, interval=interval)
+
+
+# In[28]:
+
+
+plot_animation(frames)
 
 
 # In[ ]:
